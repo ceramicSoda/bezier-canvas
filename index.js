@@ -1,11 +1,11 @@
 const track = {
     size: 4, 
-    d: [[[-100,0,0],[-100,-55,0],[-100,55,0]],[[0,100,0],[-55,100,0],[55,100,0]],[[100,0,0],[100,55,0],[100,-55,0]],[[0,-100,0],[55,-100,0],[-55,-100,0]]], 
+    d: [[[30,-56,-77],[41,-105,-72],[21,-14,-82]],[[127,-60,-54],[84,-20,-48],[169,-100,-61]],[[147,46,-59],[191,1,-66],[103,91,-53]],[[44,48,-3],[116,69,-32],[-27,27,25]],[[-106,121,13],[-26,74,-6],[-186,168,31]],[[-161,71,-29],[-173,85,-28],[-150,56,-30]],[[-188,8,-70],[-176,34,-79],[-200,-18,-60]],[[-93,-62,44],[-159,-82,71],[-26,-42,17]],[[14,-96,-64],[-13,-87,-55],[24,-98,-68]]], 
     length: [],
     p: []
 }
 let canvasEl,
-    subdiv = 8, // sections per curve
+    subdiv = 40 , // sections per curve
     ctx; 
 
 const getDistance = (p0, p1) => {
@@ -58,26 +58,25 @@ const getTrackPoint = (track, progress) => {
 
 document.addEventListener("DOMContentLoaded", () => {
     canvasEl = document.getElementById("bezier-canvas");
-    canvasEl.width = canvasEl.clientWidth; 
-    canvasEl.height = canvasEl.clientHeight; 
+    canvasEl.width = canvasEl.clientWidth * 2; 
+    canvasEl.height = canvasEl.clientHeight * 2; 
     ctx = canvasEl.getContext("2d"); 
-    ctx.fillStyle = "#FFF";
-    ctx.strokeStyle = "#FFF";
-    //ctx.fillRect()
     getTrackPoint(track);
     track.p.forEach((point,i,p) => {
+        ctx.strokeStyle = `hsl(${p[i][2] * 3},70%,70%)`;
         ctx.beginPath();
-        ctx.moveTo(p[i][0] + 200, p[i][1] + 200);
+        ctx.moveTo(p[i][0] * 3 + 600, p[i][1] * 3 + 600);
         i < (p.length - 1)
-            ? ctx.lineTo(p[i + 1][0] + 200, p[i + 1][1] + 200)
-            : ctx.lineTo(p[0][0] + 200, p[0][1] + 200)
+            ? ctx.lineTo(p[i + 1][0] * 3 + 600, p[i + 1][1] * 3 + 600)
+            : ctx.lineTo(p[0][0] * 3 + 600, p[0][1] * 3 + 600)
         ctx.stroke();
-        ctx.fillRect(p[i][0] + 200, p[i][1] + 200, 4, 4); 
+        ctx.fillStyle = `hsl(${p[i][2] * 3},70%,70%)`;
+        ctx.fillRect(p[i][0] * 3 + 599, p[i][1] * 3 + 599, 3, 3); 
     })
     console.log(track); 
 });
 
 addEventListener("resize", () => {
-    canvasEl.width = canvasEl.clientWidth; 
-    canvasEl.height = canvasEl.clientHeight; 
+    // canvasEl.width = canvasEl.clientWidth; 
+    // canvasEl.height = canvasEl.clientHeight; 
 });
