@@ -11,18 +11,13 @@ class ExportBezierCurves(bpy.types.Operator, ExportHelper):
         bezier_curves = []
         for obj in bpy.context.scene.objects:
             if obj.type == 'CURVE' and obj.data.splines[0].type == 'BEZIER':
-                bezier_curve = {
-                    'name': obj.name,
-                    'd': []
-                }
                 for spline in obj.data.splines:
                     for point in spline.bezier_points:
-                        bezier_curve['d'].append({
-                            'p': list(point.co),
-                            'p1': list(point.handle_left),
-                            'p2': list(point.handle_right)
-                        })
-                bezier_curves.append(bezier_curve)
+                        bezier_curves.append([
+                            [round(item * 100) for item in point.co],
+                            [round(item * 100) for item in point.handle_left],
+                            [round(item * 100) for item in point.handle_right]
+                        ])
         output_path = bpy.path.ensure_ext(self.filepath, self.filename_ext)
         with open(output_path, 'w') as json_file:
             json.dump(bezier_curves, json_file, separators=(',', ':'))
