@@ -1,14 +1,12 @@
 const track = {
     size: 4, 
-    d: [[[-100,0,23],[-109,-109,6],[-91,109,39]],
-        [[-4,132,0],[-62,219,-6],[57,41,6]],
-        [[100,0,40],[95,67,39],[105,-79,42]],
-        [[0,-173,0],[135,-178,7],[-132,-167,-7]]], 
+    d: [[[-100,0,0],[-100,-55,0],[-100,55,0]],[[0,100,0],[-55,100,0],[55,100,0]],[[100,0,0],[100,55,0],[100,-55,0]],[[0,-100,0],[55,-100,0],[-55,-100,0]]], 
     length: [],
+    p: []
 }
-const canvas = document.getElementById("bezier-canvas");
-const ctx = canvas.getContext("2d");
-const subdiv = 8; // sections per curve
+let canvasEl,
+    subdiv = 8, // sections per curve
+    ctx; 
 
 const getDistance = (p0, p1) => {
     let dx = p1[0] - p0[0];
@@ -41,11 +39,45 @@ const getBezierLength = (p0, p1, p2, p3, subdiv = 8) => {
     return(bLength); 
 }
 
-const getTrackPoint = (pointsArr, progress) => {
-    pointsArr.forEach((curve, cur, curves) => {
+const getTrackLength = (track, subdiv) => {
+    track.d.forEach((curve, i, curves) => {
+        //let bLength = getBezierLength(curves[i][0])
+    })
+}
+
+const getTrackPoint = (track, progress) => {
+    track.d.forEach((curve, cur, curves) => {
         let next = cur + 1;
         if (cur == (curves.length - 1))
             next = 0;
-        
+        for (let i = 0; i < subdiv; i++ )
+            track.p.push(getBezierPoint(i / subdiv, curves[cur][0], curves[cur][2], curves[next][1], curves[next][0]));
     })
 }
+
+
+document.addEventListener("DOMContentLoaded", () => {
+    canvasEl = document.getElementById("bezier-canvas");
+    canvasEl.width = canvasEl.clientWidth; 
+    canvasEl.height = canvasEl.clientHeight; 
+    ctx = canvasEl.getContext("2d"); 
+    ctx.fillStyle = "#FFF";
+    ctx.strokeStyle = "#FFF";
+    //ctx.fillRect()
+    getTrackPoint(track);
+    track.p.forEach((point,i,p) => {
+        ctx.beginPath();
+        ctx.moveTo(p[i][0] + 200, p[i][1] + 200);
+        i < (p.length - 1)
+            ? ctx.lineTo(p[i + 1][0] + 200, p[i + 1][1] + 200)
+            : ctx.lineTo(p[0][0] + 200, p[0][1] + 200)
+        ctx.stroke();
+        ctx.fillRect(p[i][0] + 200, p[i][1] + 200, 4, 4); 
+    })
+    console.log(track); 
+});
+
+addEventListener("resize", () => {
+    canvasEl.width = canvasEl.clientWidth; 
+    canvasEl.height = canvasEl.clientHeight; 
+});
