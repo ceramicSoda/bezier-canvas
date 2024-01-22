@@ -4,8 +4,10 @@ const track = {
     length: [],
     p: []
 }
-let canvasEl,
-    subdiv = 40 , // sections per curve
+let approxDensity = 1000, // approximation density
+    interval = 5, // distance in units between points
+    canvasEl,
+    subdiv = 8 , // sections per curve
     ctx; 
 
 const getDistance = (p0, p1) => {
@@ -20,13 +22,13 @@ const getBezierPoint = (t, p0, p1, p2, p3) => {
     let c2 = 3 * Math.pow(1 - t, 2) * t;
     let c3 = 3 * (1 - t) * Math.pow(t, 2);
     let c4 = Math.pow(t, 3);
-    let coords = []
+    let coords = [];
     coords.push(c1 * p0[0] + c2 * p1[0] + c3 * p2[0] + c4 * p3[0]); // x 
     coords.push(c1 * p0[1] + c2 * p1[1] + c3 * p2[1] + c4 * p3[1]); // y
     coords.push(c1 * p0[2] + c2 * p1[2] + c3 * p2[2] + c4 * p3[2]); // z
     return coords;
 }
-
+/*
 const getBezierLength = (p0, p1, p2, p3, subdiv = 8) => {
     let bLength = 0;
     for (let i = 0; i < subdiv; i++) {
@@ -40,18 +42,34 @@ const getBezierLength = (p0, p1, p2, p3, subdiv = 8) => {
 }
 
 const getTrackLength = (track, subdiv) => {
-    track.d.forEach((curve, i, curves) => {
-        //let bLength = getBezierLength(curves[i][0])
-    })
-}
-
-const getTrackPoint = (track, progress) => {
     track.d.forEach((curve, cur, curves) => {
         let next = cur + 1;
         if (cur == (curves.length - 1))
             next = 0;
-        for (let i = 0; i < subdiv; i++ )
-            track.p.push(getBezierPoint(i / subdiv, curves[cur][0], curves[cur][2], curves[next][1], curves[next][0]));
+        let bLength = getBezierLength(curves[cur][0], curves[cur][2], curves[next][1], curves[next][0], subdiv)
+        track.length.push(bLength); 
+    })
+}
+*/
+
+const getTrackPoint = (track, progress) => {
+    let bLength = 0;
+    let steps = 0;
+    track.d.forEach((curve, cur, curves) => {
+        let next = cur + 1;
+        if (cur == (curves.length - 1))
+            next = 0;
+        for (let i = 0; i < (approxDensity - 1); i++){
+            let d0 = getBezierPoint(i / approxDensity, curves[cur][0], curves[cur][2], curves[next][1], curves[next][0]);
+            let d1 = getBezierPoint((i + 1) / approxDensity, curves[cur][0], curves[cur][2], curves[next][1], curves[next][0]);
+            let dx = getDistance(d0, d1);
+            bLength += dx;
+            if (bLength >= (interval * steps)){
+                console.log(bLength); 
+                track.p.push(d0)
+                steps++; 
+            }
+        }
     })
 }
 
