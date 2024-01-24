@@ -2,13 +2,21 @@ const track = {
     size: 4, 
     d: [[[30,-56,-77],[41,-105,-72],[21,-14,-82]],[[127,-60,-54],[84,-20,-48],[169,-100,-61]],[[147,46,-59],[191,1,-66],[103,91,-53]],[[44,48,-3],[116,69,-32],[-27,27,25]],[[-106,121,13],[-26,74,-6],[-186,168,31]],[[-161,71,-29],[-173,85,-28],[-150,56,-30]],[[-188,8,-70],[-176,34,-79],[-200,-18,-60]],[[-93,-62,44],[-159,-82,71],[-26,-42,17]],[[14,-96,-64],[-13,-87,-55],[24,-98,-68]]], 
     length: [],
-    p: []
+    p: [] // need to store also t0 value for each approx point
 }
-let approxDensity = 1000, // approximation density
-    interval = 5, // distance in units between points
+let approxDensity = 5000, // approximation density
+    interval = 3, // distance in units between points
     canvasEl,
     subdiv = 8 , // sections per curve
     ctx; 
+
+const normzile = (v, mult = 1) => {
+    var mag = Math.sqrt(v[0] ** 2 + v[1] ** 2 + v[2] ** 2);
+    let nV = [(v[0] / mag) * mult, (v[1] / mag) * mult, (v[2] / mag) * mult ];
+    if (mag == 0)
+        nV = [0,0,0];
+    return nV;
+}
 
 const getDistance = (p0, p1) => {
     let dx = p1[0] - p0[0];
@@ -28,6 +36,7 @@ const getBezierPoint = (t, p0, p1, p2, p3) => {
     coords.push(c1 * p0[2] + c2 * p1[2] + c3 * p2[2] + c4 * p3[2]); // z
     return coords;
 }
+
 /*
 const getBezierLength = (p0, p1, p2, p3, subdiv = 8) => {
     let bLength = 0;
@@ -59,14 +68,20 @@ const getTrackPoint = (track, progress) => {
         let next = cur + 1;
         if (cur == (curves.length - 1))
             next = 0;
-        for (let i = 0; i < (approxDensity - 1); i++){
+        for (let i = 0; i < (approxDensity); i++){
             let d0 = getBezierPoint(i / approxDensity, curves[cur][0], curves[cur][2], curves[next][1], curves[next][0]);
             let d1 = getBezierPoint((i + 1) / approxDensity, curves[cur][0], curves[cur][2], curves[next][1], curves[next][0]);
             let dx = getDistance(d0, d1);
             bLength += dx;
             if (bLength >= (interval * steps)){
-                console.log(bLength); 
-                track.p.push(d0)
+                let v = [d0[0] - d1[0], d0[1] - d1[1], d0[2] - d1[2]];
+                let vp = [v[1], -v[0], 0]; // vector perpendicular to track
+                vp = normzile(vp, 5);
+                let segment = []; // road segment by points
+                segment.push([d0[0] + vp[0], d0[1] + vp[1], d0[2] + vp[2]]);
+                segment.push(d0);
+                segment.push([d0[0] - vp[0], d0[1] - vp[1], d0[2] - vp[2]]);
+                track.p.push(segment);
                 steps++; 
             }
         }
@@ -81,15 +96,27 @@ document.addEventListener("DOMContentLoaded", () => {
     ctx = canvasEl.getContext("2d"); 
     getTrackPoint(track);
     track.p.forEach((point,i,p) => {
-        ctx.strokeStyle = `hsl(${p[i][2] * 3},70%,70%)`;
+        let n = i + 1;
+        if (i >= (p.length - 1))
+            n = 0;
+        ctx.strokeStyle = `hsl(${p[i][0][2] * 3},70%,40%)`;
         ctx.beginPath();
-        ctx.moveTo(p[i][0] * 3 + 600, p[i][1] * 3 + 600);
-        i < (p.length - 1)
-            ? ctx.lineTo(p[i + 1][0] * 3 + 600, p[i + 1][1] * 3 + 600)
-            : ctx.lineTo(p[0][0] * 3 + 600, p[0][1] * 3 + 600)
+            ctx.moveTo(p[i][0][0] * 3 + 600, p[i][0][1] * 3 + 600);
+            ctx.lineTo(p[i][1][0] * 3 + 600, p[i][1][1] * 3 + 600);
+            ctx.moveTo(p[i][1][0] * 3 + 600, p[i][1][1] * 3 + 600);
+            ctx.lineTo(p[i][2][0] * 3 + 600, p[i][2][1] * 3 + 600);
+
+            ctx.moveTo(p[i][0][0] * 3 + 600, p[i][0][1] * 3 + 600);
+            ctx.lineTo(p[n][0][0] * 3 + 600, p[n][0][1] * 3 + 600);
+            ctx.moveTo(p[i][1][0] * 3 + 600, p[i][1][1] * 3 + 600);
+            ctx.lineTo(p[n][1][0] * 3 + 600, p[n][1][1] * 3 + 600);
+            ctx.moveTo(p[i][2][0] * 3 + 600, p[i][2][1] * 3 + 600);
+            ctx.lineTo(p[n][2][0] * 3 + 600, p[n][2][1] * 3 + 600);
         ctx.stroke();
-        ctx.fillStyle = `hsl(${p[i][2] * 3},70%,70%)`;
-        ctx.fillRect(p[i][0] * 3 + 599, p[i][1] * 3 + 599, 3, 3); 
+        ctx.fillStyle = `hsl(${p[i][0][2] * 3},70%,70%)`;
+        ctx.fillRect(p[i][0][0] * 3 + 599, p[i][0][1] * 3 + 599, 3, 3); 
+        ctx.fillRect(p[i][1][0] * 3 + 599, p[i][1][1] * 3 + 599, 3, 3); 
+        ctx.fillRect(p[i][2][0] * 3 + 599, p[i][2][1] * 3 + 599, 3, 3); 
     })
     console.log(track); 
 });
