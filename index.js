@@ -61,6 +61,7 @@ class World{
     animate(){
         this.render();
         requestAnimationFrame(this.animate.bind(this));
+        console.log("test commit");
     }
 }
 //---MAIN
