@@ -69,7 +69,6 @@ const world = new World();
 document.addEventListener("DOMContentLoaded", function() {
     world.init();
     world.animate(); 
-    console.log(world); 
 });
 
 window.addEventListener('resize', () => {
