@@ -63,7 +63,6 @@ class World{
         requestAnimationFrame(this.animate.bind(this));
     }
 }
-
 //---MAIN
 const world = new World(); 
 document.addEventListener("DOMContentLoaded", function() {
